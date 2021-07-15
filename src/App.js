@@ -1,70 +1,124 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import users from "./data.json"
 import './App.css';
-import { restElement } from '@babel/types';
+
+import SortableTable from './SortableTable';
 
 
-const filteredLocations = users.results.map(({location}) => {
-  const { street, timezone, coordinates, ...rest } = location;
-  return {
-    ...rest,
-    number: street.number,
-    name: street.name,
-    latitude: coordinates.latitude,
-    longitude: coordinates.longitude,
+const SortingDirection = {
+  ASCENDING: 'ASCENDING',
+  DESCENDING: 'DESCENDING',
+  UNSORTED: 'UNSORTED',
+};
+
+
+/**
+ * Implement the fetchData method to make an api call to the url
+ * Use the use effect hook to make the api call
+ * https://randomuser.me/api/?results=30
+ */
+
+const fetchData = () => {
+ 
+};
+
+const flattenLocation = (location) => {
+  const data = [];
+  for (const { street, timezone, coordinates, ...rest } of location) {
+    data.push({
+      ...rest,
+      number: street.number,
+      name: street.name,
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+    });
   }
-})
+  const getAllKeys = getAllHeaders(data[0]);
+  return { headers: getAllKeys, data };
+  // console.log('the result is ', result);
+};
+
+const getFilterdRows = (rows, filterKey) => {
+  return rows.filter((row) => {
+    return Object.values(row).some((s) =>
+      (' ' + s).toLowerCase().includes(filterKey)
+    );
+  });
+};
 
 const getAllHeaders = (data) => {
   console.log(' Object.keys', Object.keys(data));
   return Object.keys(data);
   // return Object.keys(data).reduce((key, value) => {});
 };
-/**
- * 
- * Create a Table Component And move the Table logic to the New Component
- * Pass data to the component as props
- * Pass the sort column as a prop to the new table
- */
 
+const sortData = (dataToBeSorted, sortKey, direction) => {
+  dataToBeSorted.sort((a, b) => {
+    const relA = a[sortKey];
+    const relB = b[sortKey];
+    if (
+      direction === SortingDirection.UNSORTED ||
+      direction === SortingDirection.ASCENDING
+    ) {
+      if (relA < relB) return -1;
+      if (relA > relB) return 1;
+      return 0;
+    } else {
+      if (relA > relB) return -1;
+      if (relA < relB) return 1;
+      return 0;
+    }
+  });
+};
+
+const getNextSortingDirection = (sortingDirection) => {
+  if (
+    sortingDirection === SortingDirection.UNSORTED ||
+    sortingDirection === SortingDirection.ASCENDING
+  ) {
+    return SortingDirection.DESCENDING;
+  }
+  return SortingDirection.ASCENDING;
+};
 
 function App() {
-  const allHeaders = getAllHeaders(filteredLocations[0])
-  const [locations, setAllLocation] = useState({
-    headers: allHeaders,
-    data: filteredLocations,
+  // const [people, setPeople] = useState([]);
+  const [location, setAllLocation] = useState({
+    headers: [],
+    data: [],
   });
 
-  const sortColumn = (sortKey) => {
-    console.log(sortKey)
-  }
+  const [sortingDireection, setSortingDirection] = useState({});
 
-  
+  const sortColumn = (sortKey) => {
+    const newFlattenedList = {
+      ...location,
+      data: [...location.data],
+    };
+    const currentSortingDirection = sortingDireection[sortKey];
+    sortData(newFlattenedList.data, sortKey, currentSortingDirection);
+    const nextSortingDirection = getNextSortingDirection(
+      currentSortingDirection
+    );
+
+    const newSortingDirection = { ...sortingDireection };
+    newSortingDirection[sortKey] = nextSortingDirection;
+
+    setAllLocation(newFlattenedList);
+    setSortingDirection(newSortingDirection);
+  };
+
+  useEffect(() => {
+    // Make an api call here
+  }, []);
   return (
     <div className="App">
       <h1> Lets Start Coding</h1>
-      <table>
-      <thead>
-          <tr>
-            {locations.headers.map((each, eachKey) => (
-              <th key={eachKey} onClick={() => sortColumn(each)}>
-                {each}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {locations.data.map((eachLoc, eachLocIndex) => (
-            <tr key={eachLocIndex}>
-              {locations.headers.map((header, headerInd) => (
-                <td key={headerInd}>{eachLoc[header]}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
+      <SortableTable
+        headers={location.headers}
+        tableData={getFilterdRows(location.data, '')}
+        sortColumn={sortColumn}
+      />
     </div>
   );
 }
