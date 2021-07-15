@@ -18,8 +18,15 @@ const SortingDirection = {
  * https://randomuser.me/api/?results=30
  */
 
-const fetchData = () => {
- 
+ const fetchData = () => {
+  return axios
+    .get('https://randomuser.me/api/?results=30')
+    .then((res) => {
+      let { results } = res.data;
+      // console.log('the data is ', results);
+      return results;
+    })
+    .catch((err) => console.error('error occured', err));
 };
 
 const flattenLocation = (location) => {
@@ -108,9 +115,16 @@ function App() {
     setSortingDirection(newSortingDirection);
   };
 
-  useEffect(() => {
-    // Make an api call here
-  }, []);
+ useEffect(() => {
+   fetchData().then((eachResults) => {
+     const ourFlatteredLocation = flattenLocation(
+       eachResults.map(({ location }) => location)
+     );
+     setAllLocation(ourFlatteredLocation);
+     console.log('the flattened Array is ', ourFlatteredLocation);
+   });
+ }, []);
+ 
   return (
     <div className="App">
       <h1> Lets Start Coding</h1>
