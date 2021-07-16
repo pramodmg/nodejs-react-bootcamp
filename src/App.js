@@ -36,13 +36,6 @@ const flattenLocation = (location) => {
   // console.log('the result is ', result);
 };
 
-const getFilterdRows = (rows, filterKey) => {
-  return rows.filter((row) => {
-    return Object.values(row).some((s) =>
-      (' ' + s).toLowerCase().includes(filterKey)
-    );
-  });
-};
 
 const getAllHeaders = (data) => {
   console.log(' Object.keys', Object.keys(data));
@@ -120,7 +113,7 @@ function App() {
       <h1> Lets Start Coding</h1>
       <SortableTable
         headers={location.headers}
-        tableData={getFilterdRows(location.data, '')}
+        tableData={location.data}
         sortColumn={sortColumn}
       />
     </div>
