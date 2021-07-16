@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
-// https://randomuser.me/api/?results=20
+import SortableTable from './SortableTable';
+
 
 const SortingDirection = {
   ASCENDING: 'ASCENDING',
@@ -12,20 +13,15 @@ const SortingDirection = {
 
 const fetchData = () => {
   return axios
-    .get('https://randomuser.me/api/?results=30')
+    .get('http://localhost:8989/users')
     .then((res) => {
-      let { results } = res.data;
-      // console.log('the data is ', results);
-      return results;
+      return res.data;
     })
     .catch((err) => console.error('error occured', err));
 };
 
-// type Location = any;
-
 const flattenLocation = (location) => {
   const data = [];
-  // street, timezone, coordinates
   for (const { street, timezone, coordinates, ...rest } of location) {
     data.push({
       ...rest,
@@ -84,7 +80,7 @@ const getNextSortingDirection = (sortingDirection) => {
 };
 
 function App() {
-  const [people, setPeople] = useState([]);
+  // const [people, setPeople] = useState([]);
   const [location, setAllLocation] = useState({
     headers: [],
     data: [],
@@ -112,7 +108,6 @@ function App() {
 
   useEffect(() => {
     fetchData().then((eachResults) => {
-      setPeople(eachResults);
       const ourFlatteredLocation = flattenLocation(
         eachResults.map(({ location }) => location)
       );
@@ -123,39 +118,11 @@ function App() {
   return (
     <div className="App">
       <h1> Lets Start Coding</h1>
-      {/* <table>
-        <thead>
-          <th>
-            1<tr>1</tr>
-          </th>
-          <th>
-            2<tr>2</tr>
-          </th>
-          <th>
-            3<tr>3</tr>
-          </th>
-        </thead>
-      </table> */}
-      <table>
-        <thead>
-          <tr>
-            {location.headers.map((each, eachKey) => (
-              <th key={eachKey} onClick={() => sortColumn(each)}>
-                {each}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {getFilterdRows(location.data, '').map((eachLoc, eachLocIndex) => (
-            <tr key={eachLocIndex}>
-              {location.headers.map((header, headerInd) => (
-                <td key={headerInd}>{eachLoc[header]}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <SortableTable
+        headers={location.headers}
+        tableData={getFilterdRows(location.data, '')}
+        sortColumn={sortColumn}
+      />
     </div>
   );
 }
